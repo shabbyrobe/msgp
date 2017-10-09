@@ -197,6 +197,24 @@ func (u UintOverflow) Resumable() bool { return true }
 
 func (u UintOverflow) withContext(ctx string) error { u.ctx = ctx; return u }
 
+// UintBelowZero is returned when a call
+// would cast a signed integer below zero
+// to an unsigned integer.
+type UintBelowZero struct {
+	Value int64 // value of the incoming int
+	ctx   string
+}
+
+// Error implements the error interface
+func (u UintBelowZero) Error() string {
+	return fmt.Sprintf("msgp: attempted to cast int %d to unsigned", u.Value)
+}
+
+// Resumable is always 'true' for overflows
+func (u UintBelowZero) Resumable() bool { return true }
+
+func (u UintBelowZero) withContext(ctx string) error { u.ctx = ctx; return u }
+
 // A TypeError is returned when a particular
 // decoding method is unsuitable for decoding
 // a particular MessagePack value.
