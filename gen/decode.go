@@ -77,12 +77,19 @@ func (d *decodeGen) structAsTuple(s *Struct) {
 	sz := randIdent()
 	d.p.declare(sz, u32)
 	d.assignAndCheck(sz, arrayHeader)
-	d.p.arrayCheck(strconv.Itoa(nfields), sz)
+	d.p.arrayCheck(strconv.Itoa(nfields), sz, s.AllowExtra)
 	for i := range s.Fields {
 		if !d.p.ok() {
 			return
 		}
 		next(d, s.Fields[i].FieldElem)
+	}
+	if s.AllowExtra {
+		d.p.printf("\n%s -= %d", sz, nfields)
+		d.p.printf("\nfor %s > 0 {\n%s--", sz, sz)
+		d.p.print("\nerr = dc.Skip()")
+		d.p.print(errcheck)
+		d.p.closeblock() // close switch
 	}
 }
 
@@ -203,7 +210,7 @@ func (d *decodeGen) gArray(a *Array) {
 	sz := randIdent()
 	d.p.declare(sz, u32)
 	d.assignAndCheck(sz, arrayHeader)
-	d.p.arrayCheck(coerceArraySize(a.Size), sz)
+	d.p.arrayCheck(coerceArraySize(a.Size), sz, false)
 
 	d.p.rangeBlock(a.Index, a.Varname(), d, a.Els)
 }

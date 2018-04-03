@@ -21,9 +21,10 @@ type passDirective func(gen.Method, []string, *gen.Printer) error
 // to add a directive, define a func([]string, *FileSet) error
 // and then add it to this list.
 var directives = map[string]directive{
-	"shim":   applyShim,
-	"ignore": ignore,
-	"tuple":  astuple,
+	"shim":       applyShim,
+	"ignore":     ignore,
+	"tuple":      astuple,
+	"allowextra": allowextra,
 }
 
 var passDirectives = map[string]passDirective{
@@ -123,6 +124,25 @@ func astuple(text []string, f *FileSet) error {
 				infoln(name)
 			} else {
 				warnf("%s: only structs can be tuples\n", name)
+			}
+		}
+	}
+	return nil
+}
+
+//msgp:allowextra {TypeA} {TypeB}...
+func allowextra(text []string, f *FileSet) error {
+	if len(text) < 2 {
+		return nil
+	}
+	for _, item := range text[1:] {
+		name := strings.TrimSpace(item)
+		if el, ok := f.Identities[name]; ok {
+			if st, ok := el.(*gen.Struct); ok {
+				st.AllowExtra = true
+				infoln(name)
+			} else {
+				warnf("%s: only structs can allow extra\n", name)
 			}
 		}
 	}

@@ -77,12 +77,20 @@ func (u *unmarshalGen) tuple(s *Struct) {
 	sz := randIdent()
 	u.p.declare(sz, u32)
 	u.assignAndCheck(sz, arrayHeader)
-	u.p.arrayCheck(strconv.Itoa(len(s.Fields)), sz)
+	nfields := len(s.Fields)
+	u.p.arrayCheck(strconv.Itoa(nfields), sz, s.AllowExtra)
 	for i := range s.Fields {
 		if !u.p.ok() {
 			return
 		}
 		next(u, s.Fields[i].FieldElem)
+	}
+	if s.AllowExtra {
+		u.p.printf("\n%s -= %d", sz, nfields)
+		u.p.printf("\nfor %s > 0 {\n%s--", sz, sz)
+		u.p.print("\nbts, err = msgp.Skip(bts)")
+		u.p.print(errcheck)
+		u.p.closeblock() // close switch
 	}
 }
 
@@ -162,7 +170,7 @@ func (u *unmarshalGen) gArray(a *Array) {
 	sz := randIdent()
 	u.p.declare(sz, u32)
 	u.assignAndCheck(sz, arrayHeader)
-	u.p.arrayCheck(coerceArraySize(a.Size), sz)
+	u.p.arrayCheck(coerceArraySize(a.Size), sz, false)
 	u.p.rangeBlock(a.Index, a.Varname(), u, a.Els)
 }
 
