@@ -21,10 +21,11 @@ type passDirective func(gen.Method, []string, *gen.Printer) error
 // to add a directive, define a func([]string, *FileSet) error
 // and then add it to this list.
 var directives = map[string]directive{
-	"shim":      applyShim,
-	"ignore":    ignore,
-	"tuple":     astuple,
-	"intercept": applyIntercept,
+	"shim":       applyShim,
+	"ignore":     ignore,
+	"tuple":      astuple,
+	"intercept":  applyIntercept,
+	"allowextra": allowextra,
 }
 
 var passDirectives = map[string]passDirective{
@@ -150,6 +151,24 @@ func applyIntercept(text []string, f *FileSet) error {
 			return fmt.Errorf("attempted to intercept unexpeted type %T", ident)
 		}
 	}
+	return nil
+}
 
+//msgp:allowextra {TypeA} {TypeB}...
+func allowextra(text []string, f *FileSet) error {
+	if len(text) < 2 {
+		return nil
+	}
+	for _, item := range text[1:] {
+		name := strings.TrimSpace(item)
+		if el, ok := f.Identities[name]; ok {
+			if st, ok := el.(*gen.Struct); ok {
+				st.AllowExtra = true
+				infoln(name)
+			} else {
+				warnf("%s: only structs can allow extra\n", name)
+			}
+		}
+	}
 	return nil
 }

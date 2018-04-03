@@ -397,6 +397,7 @@ type Struct struct {
 	common
 	Fields   []StructField // field list
 	AsTuple  bool          // write as an array instead of a map
+	AllowExtra bool        // when writing as a tuple, allow extra fields beyond the expected
 	provider string        // struct is intercepted
 }
 
