@@ -91,7 +91,12 @@ func (u *unmarshalGen) tuple(s *Struct) {
 		u.ctx.Pop()
 	}
 	if s.AllowExtra {
-		u.p.printf("\n%s -= %d", sz, nfields)
+		if nfields == 1 {
+			u.p.printf("\n%s--", sz)
+		} else {
+			u.p.printf("\n%s -= %d", sz, nfields)
+		}
+
 		u.p.printf("\nfor %s > 0 {\n%s--", sz, sz)
 		u.p.print("\nbts, err = msgp.Skip(bts)")
 		u.p.wrapErrCheck(u.ctx.ArgsStr())

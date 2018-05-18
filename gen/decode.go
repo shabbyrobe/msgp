@@ -90,7 +90,11 @@ func (d *decodeGen) structAsTuple(s *Struct) {
 		d.ctx.Pop()
 	}
 	if s.AllowExtra {
-		d.p.printf("\n%s -= %d", sz, nfields)
+		if nfields == 1 {
+			d.p.printf("\n%s--", sz)
+		} else {
+			d.p.printf("\n%s -= %d", sz, nfields)
+		}
 		d.p.printf("\nfor %s > 0 {\n%s--", sz, sz)
 		d.p.print("\nerr = dc.Skip()")
 		d.p.wrapErrCheck(d.ctx.ArgsStr())
